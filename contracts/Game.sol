@@ -22,7 +22,7 @@ contract Game {
 
     struct CommitChoice {
         address playerAddress;
-        bytes16 commitment;
+        bytes32 hash;
         Choice choice;
     }
 
@@ -56,11 +56,7 @@ contract Game {
         owner = msg.sender;
     }
 
-    function commit(bytes16 commitment)
-    external
-    atStage(Stages.FirstCommit)
-    atStage(Stages.SecondCommit)
-    {
+    function commit(bytes32 _hash) external atStage(Stages.FirstCommit) atStage(Stages.SecondCommit) {
         uint256 playerIndex;
 
         if (stage == Stages.FirstCommit) {
@@ -71,11 +67,7 @@ contract Game {
             revert("both players have already played");
         }
 
-        players[playerIndex] = CommitChoice(
-            msg.sender,
-            commitment,
-            Choice.None
-        );
+        players[playerIndex] = CommitChoice(msg.sender, _hash, Choice.None);
 
         emit Commit(msg.sender);
 
@@ -86,9 +78,7 @@ contract Game {
         }
     }
 
-    function reveal(Choice choice, bytes32 blindingFactor)
-    external
-    playersOnly
+    function reveal(Choice choice, bytes32 secret) external playersOnly
     atStage(Stages.FirstReveal)
     atStage(Stages.SecondReveal)
     {
@@ -108,10 +98,9 @@ contract Game {
 
         CommitChoice storage commitChoice = players[playerIndex];
 
-        // Check the hash to ensure the commitment is correct
         require(
-            keccak256(abi.encodePacked(msg.sender, choice, blindingFactor)) ==
-            commitChoice.commitment,
+            keccak256(abi.encodePacked(msg.sender, choice, secret)) ==
+            commitChoice.hash,
             "invalid hash"
         );
 
