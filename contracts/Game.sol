@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 
+
+
 pragma solidity ^0.8.0;
+
+import "hardhat/console.sol";
 
 contract Game {
     address private owner;
@@ -41,7 +45,12 @@ contract Game {
     }
 
     modifier atStage(Stages _stage) {
-        require(stage == _stage);
+        require(stage == _stage, "Wrong stage");
+        _;
+    }
+
+    modifier atNotStage(Stages _stage) {
+        require(stage != _stage, "Wrong stage");
         _;
     }
 
@@ -50,13 +59,18 @@ contract Game {
     event Result(address winner);
 
     CommitChoice[2] public players;
-    Stages private stage = Stages.FirstCommit;
+    Stages public stage = Stages.FirstCommit;
 
     constructor() {
         owner = msg.sender;
     }
 
-    function commit(bytes32 _hash) external atStage(Stages.FirstCommit) atStage(Stages.SecondCommit) {
+    function commit(bytes32 _hash)
+    external
+    atNotStage(Stages.FirstReveal)
+    atNotStage(Stages.SecondReveal)
+    atNotStage(Stages.Result)
+    {
         uint256 playerIndex;
 
         if (stage == Stages.FirstCommit) {
@@ -78,9 +92,13 @@ contract Game {
         }
     }
 
-    function reveal(Choice choice, bytes32 secret) external playersOnly
-    atStage(Stages.FirstReveal)
-    atStage(Stages.SecondReveal)
+
+    function reveal(Choice choice, bytes32 secret)
+    external
+    playersOnly
+    atNotStage(Stages.FirstCommit)
+    atNotStage(Stages.SecondCommit)
+    atNotStage(Stages.Result)
     {
         require(
             choice == Choice.Rock ||
@@ -89,7 +107,8 @@ contract Game {
             "invalid choice"
         );
 
-        uint256 playerIndex;
+        uint8 playerIndex;
+
         if (players[0].playerAddress == msg.sender) {
             playerIndex = 0;
         } else if (players[1].playerAddress == msg.sender) {
@@ -99,7 +118,7 @@ contract Game {
         CommitChoice storage commitChoice = players[playerIndex];
 
         require(
-            keccak256(abi.encodePacked(msg.sender, choice, secret)) ==
+            keccak256(abi.encodePacked(msg.sender, uint(choice), secret)) ==
             commitChoice.hash,
             "invalid hash"
         );

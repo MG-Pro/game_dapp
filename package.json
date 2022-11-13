@@ -5,7 +5,8 @@
     "test-contract": "hardhat test",
     "dev-network": "hardhat node",
     "dev-deploy": "hardhat run scripts/deploy.ts --network localhost",
-    "prod-deploy": "hardhat run scripts/deploy.ts --network goerli"
+    "prod-deploy": "hardhat run scripts/deploy.ts --network goerli",
+    "coverage": "hardhat coverage"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
