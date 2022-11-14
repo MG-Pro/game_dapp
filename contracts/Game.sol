@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-
-
 pragma solidity ^0.8.0;
-
-import "hardhat/console.sol";
 
 contract Game {
     address private owner;
@@ -39,7 +35,7 @@ contract Game {
         require(
             msg.sender == players[0].playerAddress ||
             msg.sender == players[1].playerAddress,
-            "Only for players. Firstly make commit"
+            "Only for players"
         );
         _;
     }
@@ -77,8 +73,6 @@ contract Game {
             playerIndex = 0;
         } else if (stage == Stages.SecondCommit) {
             playerIndex = 1;
-        } else {
-            revert("both players have already played");
         }
 
         players[playerIndex] = CommitChoice(msg.sender, _hash, Choice.None);
@@ -137,15 +131,7 @@ contract Game {
     function result() external playersOnly atStage(Stages.Result) {
         address winner;
 
-        if (players[0].choice == Choice.None) {
-            winner = players[1].playerAddress;
-        } else if (players[1].choice == Choice.None) {
-            winner = players[0].playerAddress;
-        } else if (players[0].choice == Choice.Rock) {
-            assert(
-                players[1].choice == Choice.Paper ||
-                players[1].choice == Choice.Scissors
-            );
+        if (players[0].choice == Choice.Rock) {
             if (players[1].choice == Choice.Paper) {
                 winner = players[1].playerAddress;
             } else if (players[1].choice == Choice.Scissors) {
@@ -153,10 +139,6 @@ contract Game {
                 winner = players[0].playerAddress;
             }
         } else if (players[0].choice == Choice.Paper) {
-            assert(
-                players[1].choice == Choice.Rock ||
-                players[1].choice == Choice.Scissors
-            );
             if (players[1].choice == Choice.Rock) {
                 // Paper beats rock
                 winner = players[0].playerAddress;
@@ -165,10 +147,6 @@ contract Game {
                 winner = players[1].playerAddress;
             }
         } else if (players[0].choice == Choice.Scissors) {
-            assert(
-                players[1].choice == Choice.Paper ||
-                players[1].choice == Choice.Rock
-            );
             if (players[1].choice == Choice.Rock) {
                 // Scissors lose to rock
                 winner = players[1].playerAddress;
@@ -176,13 +154,10 @@ contract Game {
                 // Scissors beats paper
                 winner = players[0].playerAddress;
             }
-        } else {
-            revert("invalid choice");
         }
 
-        emit Result(winner);
-
         reset();
+        emit Result(winner);
     }
 
     function reset() internal {
