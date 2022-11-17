@@ -5,6 +5,9 @@ const {API_URL, PRIVATE_KEY, API_KEY} = process.env
 
 const config: HardhatUserConfig = {
   solidity: "0.8.17",
+  gasReporter: {
+    enabled: false
+  },
   networks: {
     goerli: {
       url: API_URL,

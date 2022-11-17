@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity ^0.8.0;
-
+import "hardhat/console.sol";
 contract Game {
     address private owner;
 
@@ -81,19 +81,21 @@ contract Game {
 
         if (stage == Stages.FirstCommit) {
             stage = Stages.SecondCommit;
+
         } else {
             stage = Stages.FirstReveal;
         }
     }
 
-
-    function reveal(Choice choice, bytes32 secret)
+    function reveal(uint choiceOrder, bytes32 secret)
     external
     playersOnly
     atNotStage(Stages.FirstCommit)
     atNotStage(Stages.SecondCommit)
     atNotStage(Stages.Result)
     {
+        Choice choice = Choice(choiceOrder);
+
         require(
             choice == Choice.Rock ||
             choice == Choice.Paper ||
@@ -112,7 +114,7 @@ contract Game {
         CommitChoice storage commitChoice = players[playerIndex];
 
         require(
-            keccak256(abi.encodePacked(msg.sender, uint(choice), secret)) ==
+            keccak256(abi.encodePacked(msg.sender, choiceOrder, secret)) ==
             commitChoice.hash,
             "invalid hash"
         );
